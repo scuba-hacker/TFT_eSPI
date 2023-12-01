@@ -37,7 +37,7 @@ TFT_eSprite::TFT_eSprite(TFT_eSPI *tft)
   _colorMap = nullptr;
 
   _psram_enable = true;
-  
+
   // Ensure end_tft_write() does nothing in inherited functions.
   lockTransaction = true;
 }
@@ -487,7 +487,7 @@ bool TFT_eSprite::pushRotated(TFT_eSprite *spr, int16_t angle, uint32_t transp)
   uint32_t xe = _dwidth << FP_SCALE;
   uint32_t ye = _dheight << FP_SCALE;
   uint16_t tpcolor = (uint16_t)transp;
-  
+
   if (transp != 0x00FFFFFF) {
     if (_bpp == 4) tpcolor = _colorMap[transp & 0x0F];
     tpcolor = tpcolor>>8 | tpcolor<<8; // Working with swapped color bytes
@@ -1223,7 +1223,7 @@ void  TFT_eSprite::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const u
     y-= _yDatum;
     uint16_t bsw =  (w+7) >> 3; // Width in bytes of source image line
     uint8_t *ptr = ((uint8_t*)data) + dy * bsw;
-    
+
     while (dh--) {
       int32_t odx = dx;
       int32_t ox  = x;
@@ -1244,6 +1244,94 @@ void  TFT_eSprite::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const u
 #endif // if ESP32 check
 }
 
+void  TFT_eSprite::pushImageScaled(int32_t x, int32_t y, int32_t w, int32_t h, int16_t zoom, int16_t zx, int16_t zy, 
+									const uint16_t *data, const bool invertSwapBytes)
+{
+    if ((x >= _iwidth) || (y >= _iheight) || (w == 0) || (h == 0) || !_created) return;
+    if ((x + w < 0) || (y + h < 0)) return;
+
+	bool swap = (invertSwapBytes ? !_swapBytes : _swapBytes);
+
+    uint32_t tileOffsetX = (w/zoom) * zx;		// x origin for colour data
+    uint32_t tileOffsetY = (h/zoom) * zy;		// y origin for colour data
+
+    int32_t xo = 0;
+    int32_t yo = 0;
+
+    int32_t xs = x;
+    int32_t ys = y;
+
+    uint32_t ws = w;
+    uint32_t hs = h;
+
+    if (x < 0) { xo = -x; xs = 0; }
+    if (y < 0) { yo = -y; ys = 0; }
+
+    if (xs + w >= _iwidth)  ws = _iwidth  - xs;
+    if (ys + h >= _iheight) hs = _iheight - ys;
+
+    if (_bpp == 16)
+    {
+      for (uint32_t yp = yo; yp < yo + hs; yp++)
+      {
+          x = xs;
+          for (uint32_t xp = xo; xp < xo + ws; xp++)
+          {
+              uint32_t data_x = xp/zoom + tileOffsetX;
+              uint32_t data_y = yp/zoom + tileOffsetY;
+              uint16_t color = data[data_x + data_y * w];
+
+              if (!swap) color = color<<8 | color>>8;
+
+              drawPixel(xp, yp,color);
+              x++;
+          }
+          ys++;
+      }
+    }
+/*
+  else if (_bpp == 8 && sbpp == 8) // Plot a 8 bpp image into a 8 bpp Sprite
+  {
+	  for (uint32_t yp = yo; yp < yo + hs; yp++)
+	  {
+		  x = xs;
+		  for (uint32_t xp = xo; xp < xo + ws; xp++)
+		  {
+			  uint32_t data_x = xp/zoom + tileOffsetX;
+			  uint32_t data_y = yp/zoom + tileOffsetY;
+			  uint8_t  color = data[data_x + data_y * w];
+
+			  drawPixel(xp, yp,color);
+			  x++;
+		  }
+		  ys++;
+	  }
+  }*/
+  /* // not modified for scaling yet - needed or not?
+  else if (_bpp == 8) // Plot a 16 bpp image into a 8 bpp Sprite
+  {
+	uint16_t lastColor = 0;
+	uint8_t  color8    = 0;
+	for (int32_t yp = dy; yp < dy + dh; yp++)
+	{
+	  int32_t xyw = x + y * _iwidth;
+	  int32_t dxypw = dx + yp * w;
+	  for (int32_t xp = dx; xp < dx + dw; xp++)
+	  {
+		uint16_t color = data[dxypw++];
+		if (color != lastColor) {
+		  // When data source is a sprite, the bytes are already swapped
+		  if(!_swapBytes) color8 = (uint8_t)((color & 0xE0) | (color & 0x07)<<2 | (color & 0x1800)>>11);
+		  else color8 = (uint8_t)((color & 0xE000)>>8 | (color & 0x0700)>>6 | (color & 0x0018)>>3);
+		}
+		lastColor = color;
+		_img8[xyw++] = color8;
+	  }
+	  y++;
+	}
+  }
+*/
+}
 
 /***************************************************************************************
 ** Function name:           setWindow
@@ -1254,7 +1342,7 @@ void TFT_eSprite::setWindow(int32_t x0, int32_t y0, int32_t x1, int32_t y1)
 {
   if (x0 > x1) transpose(x0, x1);
   if (y0 > y1) transpose(y0, y1);
-  
+
   int32_t w = width();
   int32_t h = height();
 
@@ -1603,7 +1691,7 @@ void TFT_eSprite::setRotation(uint8_t r)
   if (_bpp != 1) return;
 
   rotation = r;
-  
+
   if (rotation&1) {
     resetViewport();
   }
@@ -2512,7 +2600,7 @@ void TFT_eSprite::drawGlyph(uint16_t code)
         fillwidth = 0;
       }
 
-      // Fill any area to left of glyph                              
+      // Fill any area to left of glyph
       if (bg_cursor_x < cx) fillRect(bg_cursor_x, cy, cx - bg_cursor_x, gHeight[gNum], textbgcolor);
       // Set x position in glyph area where background starts
       if (bg_cursor_x > cx) bx = bg_cursor_x - cx;

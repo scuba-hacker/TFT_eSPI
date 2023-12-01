@@ -33,7 +33,7 @@ class TFT_eSprite : public TFT_eSPI {
            // Select the frame buffer for graphics write (for 2 colour ePaper and DMA toggle buffer)
            // Returns a pointer to the Sprite frame buffer
   void*    frameBuffer(int8_t f);
-  
+
            // Set or get the colour depth to 1, 4, 8 or 16 bits. Can be used to change depth an existing
            // sprite, but clears it to black, returns a new pointer if sprite is re-created.
   void*    setColorDepth(int8_t b);
@@ -107,7 +107,7 @@ class TFT_eSprite : public TFT_eSPI {
   void     getRotatedBounds(int16_t angle, int16_t w, int16_t h, int16_t xp, int16_t yp,
                             int16_t *min_x, int16_t *min_y, int16_t *max_x, int16_t *max_y);
 
-           // Read the colour of a pixel at x,y and return value in 565 format 
+           // Read the colour of a pixel at x,y and return value in 565 format
   uint16_t readPixel(int32_t x0, int32_t y0);
 
            // return the numerical value of the pixel at x,y (used when scrolling)
@@ -117,6 +117,11 @@ class TFT_eSprite : public TFT_eSPI {
            // Write an image (colour bitmap) to the sprite.
   void     pushImage(int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t *data, uint8_t sbpp = 0);
   void     pushImage(int32_t x0, int32_t y0, int32_t w, int32_t h, const uint16_t *data);
+
+           // Write a scaled image to the sprite.
+  void     pushImageScaled(int32_t x, int32_t y, int32_t w, int32_t h, int16_t zoom, int16_t zx, int16_t zy,
+								const uint16_t *data,const bool invertSwapBytes=false);
+
 
            // Push the sprite to the TFT screen, this fn calls pushImage() in the TFT class.
            // Optionally a "transparent" colour can be defined, pixels of that colour will not be rendered
@@ -174,7 +179,7 @@ class TFT_eSprite : public TFT_eSPI {
   int32_t  _cosra;   // Cosine of rotation angle in fixed point
 
   bool     _created; // A Sprite has been created and memory reserved
-  bool     _gFont = false; 
+  bool     _gFont = false;
 
   int32_t  _xs, _ys, _xe, _ye, _xptr, _yptr; // for setWindow
   int32_t  _sx, _sy; // x,y for scroll zone

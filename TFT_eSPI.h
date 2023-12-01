@@ -154,7 +154,7 @@
       #warning TFT_MISO set to -1
     #endif
   #endif
-#endif  
+#endif
 
 /***************************************************************************************
 **                         Section 4: Setup fonts
@@ -331,6 +331,26 @@ const PROGMEM fontinfo fontdata [] = {
 // and will then decode back to the same 16 bit value.
 // Convenient for 8 bit and 16 bit transparent sprites.
 #define TFT_TRANSPARENT 0x0120 // This is actually a dark green
+
+#define BLACK       0x0000 /*   0,   0,   0 */
+#define NAVY        0x000F /*   0,   0, 128 */
+#define DARKGREEN   0x03E0 /*   0, 128,   0 */
+#define DARKCYAN    0x03EF /*   0, 128, 128 */
+#define MAROON      0x7800 /* 128,   0,   0 */
+#define PURPLE      0x780F /* 128,   0, 128 */
+#define OLIVE       0x7BE0 /* 128, 128,   0 */
+#define LIGHTGREY   0xC618 /* 192, 192, 192 */
+#define DARKGREY    0x7BEF /* 128, 128, 128 */
+#define BLUE        0x001F /*   0,   0, 255 */
+#define GREEN       0x07E0 /*   0, 255,   0 */
+#define CYAN        0x07FF /*   0, 255, 255 */
+#define RED         0xF800 /* 255,   0,   0 */
+#define MAGENTA     0xF81F /* 255,   0, 255 */
+#define YELLOW      0xFFE0 /* 255, 255,   0 */
+#define WHITE       0xFFFF /* 255, 255, 255 */
+#define ORANGE      0xFDA0 /* 255, 180,   0 */
+#define GREENYELLOW 0xB7E0 /* 180, 255,   0 */
+#define PINK        0xFC9F
 
 // Default palette for 4 bit colour sprites
 static const uint16_t default_4bit_palette[] PROGMEM = {
@@ -546,7 +566,7 @@ class TFT_eSPI : public Print { friend class TFT_eSprite; // Sprite class has ac
   void     drawSmoothArc(int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool roundEnds = false);
 
            // As per "drawSmoothArc" except the ends of the arc are NOT anti-aliased, this facilitates dynamic arc length changes with
-           // arc segments and ensures clean segment joints. 
+           // arc segments and ensures clean segment joints.
            // The sides of the arc are anti-aliased by default. If smoothArc is false sides will NOT be anti-aliased
   void     drawArc(int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool smoothArc = true);
 
@@ -554,7 +574,7 @@ class TFT_eSPI : public Print { friend class TFT_eSprite; // Sprite class has ac
            // Note: The thickness of line is 3 pixels to reduce the visible "braiding" effect of anti-aliasing narrow lines
            //       this means the inner anti-alias zone is always at r-1 and the outer zone at r+1
   void     drawSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t fg_color, uint32_t bg_color);
-  
+
            // Draw an anti-aliased filled circle at x, y with radius r
            // If bg_color is not included the background pixel colour will be read from TFT or sprite
   void     fillSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t color, uint32_t bg_color = 0x00FFFFFF);
