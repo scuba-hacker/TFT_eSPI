@@ -133,7 +133,9 @@ class TFT_eSprite : public TFT_eSPI {
 
            // Push the sprite to another sprite at x,y. This fn calls pushImage() in the destination sprite (dspr) class.
   bool     pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y);
+  bool     pushToSprite(TFT_eSprite &dspr, int32_t x, int32_t y);
   bool     pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y, uint16_t transparent);
+  bool     pushToSprite(TFT_eSprite &dspr, int32_t x, int32_t y, uint16_t transparent);
 
            // Draw a single character in the selected font
   int16_t  drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t font),
