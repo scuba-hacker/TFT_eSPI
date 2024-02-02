@@ -96,11 +96,14 @@ class TFT_eSprite : public TFT_eSPI {
            // Push a rotated copy of Sprite to TFT with optional transparent colour
   bool     pushRotated(int16_t angle, uint32_t transp = 0x00FFFFFF);
            // Push a rotated copy of Sprite to another different Sprite with optional transparent colour
+  bool     pushRotated(TFT_eSprite &spr, int16_t angle, uint32_t transp = 0x00FFFFFF);
   bool     pushRotated(TFT_eSprite *spr, int16_t angle, uint32_t transp = 0x00FFFFFF);
 
            // Get the TFT bounding box for a rotated copy of this Sprite
   bool     getRotatedBounds(int16_t angle, int16_t *min_x, int16_t *min_y, int16_t *max_x, int16_t *max_y);
            // Get the destination Sprite bounding box for a rotated copy of this Sprite
+  bool     getRotatedBounds(TFT_eSprite &spr, int16_t angle, int16_t *min_x, int16_t *min_y,
+                                                             int16_t *max_x, int16_t *max_y);
   bool     getRotatedBounds(TFT_eSprite *spr, int16_t angle, int16_t *min_x, int16_t *min_y,
                                                              int16_t *max_x, int16_t *max_y);
            // Bounding box support function
@@ -132,10 +135,10 @@ class TFT_eSprite : public TFT_eSPI {
   bool     pushSprite(int32_t tx, int32_t ty, int32_t sx, int32_t sy, int32_t sw, int32_t sh);
 
            // Push the sprite to another sprite at x,y. This fn calls pushImage() in the destination sprite (dspr) class.
-  bool     pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y);
   bool     pushToSprite(TFT_eSprite &dspr, int32_t x, int32_t y);
-  bool     pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y, uint16_t transparent);
+  bool     pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y);
   bool     pushToSprite(TFT_eSprite &dspr, int32_t x, int32_t y, uint16_t transparent);
+  bool     pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y, uint16_t transparent);
 
            // Draw a single character in the selected font
   int16_t  drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t font),

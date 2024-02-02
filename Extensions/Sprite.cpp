@@ -468,8 +468,14 @@ bool TFT_eSprite::pushRotated(int16_t angle, uint32_t transp)
 // Not compatible with 4bpp
 bool TFT_eSprite::pushRotated(TFT_eSprite *spr, int16_t angle, uint32_t transp)
 {
+  return pushRotated(*spr,angle,transp);
+}
+
+// Not compatible with 4bpp
+bool TFT_eSprite::pushRotated(TFT_eSprite &spr, int16_t angle, uint32_t transp)
+{
   if ( !_created  || _bpp == 4) return false; // Check this Sprite is created
-  if ( !spr->_created  || spr->_bpp == 4) return false;  // Ckeck destination Sprite is created
+  if ( !spr._created  || spr._bpp == 4) return false;  // Ckeck destination Sprite is created
 
   // Bounding box parameters
   int16_t min_x;
@@ -482,8 +488,8 @@ bool TFT_eSprite::pushRotated(TFT_eSprite *spr, int16_t angle, uint32_t transp)
 
   uint16_t sline_buffer[max_x - min_x + 1];
 
-  int32_t xt = min_x - spr->_xPivot;
-  int32_t yt = min_y - spr->_yPivot;
+  int32_t xt = min_x - spr._xPivot;
+  int32_t yt = min_y - spr._yPivot;
   uint32_t xe = _dwidth << FP_SCALE;
   uint32_t ye = _dheight << FP_SCALE;
   uint16_t tpcolor = (uint16_t)transp;
@@ -493,8 +499,8 @@ bool TFT_eSprite::pushRotated(TFT_eSprite *spr, int16_t angle, uint32_t transp)
     tpcolor = tpcolor>>8 | tpcolor<<8; // Working with swapped color bytes
   }
 
-  bool oldSwapBytes = spr->getSwapBytes();
-  spr->setSwapBytes(false);
+  bool oldSwapBytes = spr.getSwapBytes();
+  spr.setSwapBytes(false);
 
   // Scan destination bounding box and fetch transformed pixels from source Sprite
   for (int32_t y = min_y; y <= max_y; y++, yt++) {
@@ -514,7 +520,7 @@ bool TFT_eSprite::pushRotated(TFT_eSprite *spr, int16_t angle, uint32_t transp)
       else { rp = readPixel(xp, yp); rp = (uint16_t)(rp>>8 | rp<<8); }
       if (transp != 0x00FFFFFF && tpcolor == rp) {
         if (pixel_count) {
-          spr->pushImage(x - pixel_count, y, pixel_count, 1, sline_buffer);
+          spr.pushImage(x - pixel_count, y, pixel_count, 1, sline_buffer);
           pixel_count = 0;
         }
       }
@@ -522,13 +528,11 @@ bool TFT_eSprite::pushRotated(TFT_eSprite *spr, int16_t angle, uint32_t transp)
         sline_buffer[pixel_count++] = rp;
       }
     } while (++x < max_x && (xs += _cosra) < xe && (ys += _sinra) < ye);
-    if (pixel_count) spr->pushImage(x - pixel_count, y, pixel_count, 1, sline_buffer);
+    if (pixel_count) spr.pushImage(x - pixel_count, y, pixel_count, 1, sline_buffer);
   }
-  spr->setSwapBytes(oldSwapBytes);
+  spr.setSwapBytes(oldSwapBytes);
   return true;
 }
-
-
 /***************************************************************************************
 ** Function name:           getRotatedBounds
 ** Description:             Get TFT bounding box of a rotated Sprite wrt pivot
@@ -568,22 +572,28 @@ bool TFT_eSprite::getRotatedBounds(int16_t angle, int16_t *min_x, int16_t *min_y
 bool TFT_eSprite::getRotatedBounds(TFT_eSprite *spr, int16_t angle, int16_t *min_x, int16_t *min_y,
                                                                     int16_t *max_x, int16_t *max_y)
 {
+  return getRotatedBounds(*spr, angle, min_x, min_y, max_x, max_y);
+}
+
+bool TFT_eSprite::getRotatedBounds(TFT_eSprite &spr, int16_t angle, int16_t *min_x, int16_t *min_y,
+                                                                    int16_t *max_x, int16_t *max_y)
+{
   // Get the bounding box of this rotated source Sprite relative to Sprite pivot
   getRotatedBounds(angle, width(), height(), _xPivot, _yPivot, min_x, min_y, max_x, max_y);
 
   // Move bounding box so source Sprite pivot coincides with destination Sprite pivot
-  *min_x += spr->_xPivot;
-  *max_x += spr->_xPivot;
-  *min_y += spr->_yPivot;
-  *max_y += spr->_yPivot;
+  *min_x += spr._xPivot;
+  *max_x += spr._xPivot;
+  *min_y += spr._yPivot;
+  *max_y += spr._yPivot;
 
   // Test only to show bounding box
-  // spr->fillSprite(TFT_BLACK);
-  // spr->drawRect(min_x, min_y, max_x - min_x + 1, max_y - min_y + 1, TFT_GREEN);
+  // spr.fillSprite(TFT_BLACK);
+  // spr.drawRect(min_x, min_y, max_x - min_x + 1, max_y - min_y + 1, TFT_GREEN);
 
   // Return if bounding box is completely outside of destination Sprite
-  if (*min_x > spr->width()) return true;
-  if (*min_y > spr->height()) return true;
+  if (*min_x > spr.width()) return true;
+  if (*min_y > spr.height()) return true;
   if (*max_x < 0) return true;
   if (*max_y < 0) return true;
 
@@ -591,8 +601,8 @@ bool TFT_eSprite::getRotatedBounds(TFT_eSprite *spr, int16_t angle, int16_t *min
   // Clipping to a viewport will be done by destination Sprite pushImage function
   if (*min_x < 0) min_x = 0;
   if (*min_y < 0) min_y = 0;
-  if (*max_x > spr->width())  *max_x = spr->width();
-  if (*max_y > spr->height()) *max_y = spr->height();
+  if (*max_x > spr.width())  *max_x = spr.width();
+  if (*max_y > spr.height()) *max_y = spr.height();
 
   return true;
 }
@@ -800,6 +810,104 @@ bool TFT_eSprite::pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y, uint16_t
 {
   return pushToSprite(*dspr, x, y, transp);
 }
+
+
+/***************************************************************************************
+** Function name:           pushSprite
+** Description:             Push a cropped sprite to the TFT at tx, ty
+***************************************************************************************/
+bool TFT_eSprite::pushSprite(int32_t tx, int32_t ty, int32_t sx, int32_t sy, int32_t sw, int32_t sh)
+{
+  if (!_created) return false;
+
+  // Perform window boundary checks and crop if needed
+  setWindow(sx, sy, sx + sw - 1, sy + sh - 1);
+
+  /* These global variables are now populated for the sprite
+  _xs = x start coordinate
+  _ys = y start coordinate
+  _xe = x end coordinate (inclusive)
+  _ye = y end coordinate (inclusive)
+  */
+
+  // Calculate new sprite window bounding box width and height
+  sw = _xe - _xs + 1;
+  sh = _ye - _ys + 1;
+
+  if (_ys >= _iheight) return false;
+
+  if (_bpp == 16)
+  {
+    bool oldSwapBytes = _tft->getSwapBytes();
+    _tft->setSwapBytes(false);
+
+    // Check if a faster block copy to screen is possible
+    if ( sx == 0 && sw == _dwidth)
+      _tft->pushImage(tx, ty, sw, sh, _img + _iwidth * _ys );
+    else // Render line by line
+      while (sh--)
+        _tft->pushImage(tx, ty++, sw, 1, _img + _xs + _iwidth * _ys++ );
+
+    _tft->setSwapBytes(oldSwapBytes);
+  }
+  else if (_bpp == 8)
+  {
+    // Check if a faster block copy to screen is possible
+    if ( sx == 0 && sw == _dwidth)
+      _tft->pushImage(tx, ty, sw, sh, _img8 + _iwidth * _ys, (bool)true );
+    else // Render line by line
+    while (sh--)
+      _tft->pushImage(tx, ty++, sw, 1, _img8 + _xs + _iwidth * _ys++, (bool)true );
+  }
+  else if (_bpp == 4)
+  {
+    // Check if a faster block copy to screen is possible
+    if ( sx == 0 && sw == _dwidth)
+      _tft->pushImage(tx, ty, sw, sh, _img4 + (_iwidth>>1) * _ys, false, _colorMap );
+    else // Render line by line
+    {
+      int32_t ds = _xs&1; // Odd x start pixel
+
+      int32_t de = 0;     // Odd x end pixel
+      if ((sw > ds) && (_xe&1)) de = 1;
+
+      uint32_t dm = 0;     // Midsection pixel count
+      if (sw > (ds+de)) dm = sw - ds - de;
+      sw--;
+
+      uint32_t yp = (_xs + ds + _iwidth * _ys)>>1;
+      _tft->startWrite();
+      while (sh--)
+      {
+        if (ds) _tft->drawPixel(tx, ty, readPixel(_xs, _ys) );
+        if (dm) _tft->pushImage(tx + ds, ty, dm, 1, _img4 + yp, false, _colorMap );
+        if (de) _tft->drawPixel(tx + sw, ty, readPixel(_xe, _ys) );
+        _ys++;
+        ty++;
+        yp += (_iwidth>>1);
+      }
+      _tft->endWrite();
+    }
+  }
+  else // 1bpp
+  {
+    // Check if a faster block copy to screen is possible
+    if ( sx == 0 && sw == _dwidth)
+      _tft->pushImage(tx, ty, sw, sh, _img8 + (_bitwidth>>3) * _ys, (bool)false );
+    else // Render line by line
+    {
+      _tft->startWrite();
+      while (sh--)
+      {
+        _tft->pushImage(tx, ty++, sw, 1, _img8 + (_bitwidth>>3) * _ys++, (bool)false );
+      }
+      _tft->endWrite();
+    }
+  }
+
+  return true;
+}
+
 
 /***************************************************************************************
 ** Function name:           readPixelValue
